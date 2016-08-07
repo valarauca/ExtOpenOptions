@@ -1,14 +1,13 @@
 [package]
-name = "kernelx64_openoptions"
+name = "ExtOpenOptions"
 version = "0.1.0"
 authors = ["cody <codylaeder@gmail.com>"]
-
-[dependencies]
-libc = "0.2.15"
-
-[package]
 description = "Extended options for open(2) interface in Linux x64"
 documentation = "https://github.com/valarauca/ExtOpenOptions/blob/master/README.md"
 homepage = "https://github.com/valarauca/ExtOpenOptions"
 keywords = ["linux","open","extended","options"]
 license = "X11"
+
+
+[dependencies]
+libc = "0.2.15"
