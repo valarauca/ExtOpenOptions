@@ -6,15 +6,17 @@ allow working with native file descriptors not painful in Rust.
 
 ###`read(3)` `write(3)`
 
-`safe_read( fd: i32, buff: &mut [u8], count: usize) -> Result<bool,Error>
-safe_write( fd: i32, buff: &[u8], count: usize ) -> Result<bool,Error>`
+`safe_read( fd: i32, buff: &mut [u8], count: usize) -> Result<bool,Error>`
+
+`safe_write( fd: i32, buff: &[u8], count: usize ) -> Result<bool,Error>`
 
 Safe Read/Write allow for a buffer larger then the intended write/read be used.
 When `Ok(false)` is returned `count > buff.len()` is `true`. This means the
 write/read being execute are larger then the allocation it is being operated on.
 
-`generic_read< G: Sized >( fd: i32, buff: &mut G) -> Result<(),Error>
-generic_write< G: Sized >( fd: i32, buff: &G ) -> Result<(), Error>`
+`generic_read< G: Sized >( fd: i32, buff: &mut G) -> Result<(),Error>`
+
+`generic_write< G: Sized >( fd: i32, buff: &G ) -> Result<(), Error>`
 
 The function `::std::mem::size_of<G>()` will be called to determine the size
 of the read/write. While the the pointer to G will be treated as a `*void` in
