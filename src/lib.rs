@@ -18,7 +18,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OU
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 extern crate libc;
-use libc::{ open, read, write, O_APPEND, O_ASYNC, O_CREAT, O_DIRECT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_SYNC, O_TRUNC,O_WRONLY,O_RDWR};
+use libc::{ lseek, open, read, write, O_APPEND, O_ASYNC, O_CREAT, O_DIRECT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_SYNC, O_TRUNC,O_WRONLY,O_RDWR};
 
 use std::io::Error;
 use std::os::unix::io::RawFd;
@@ -200,32 +200,14 @@ pub fn generic_write< G: Sized >( fd: i32, buffer: &G ) -> Result<(),Error> {
     }
 }
 
-pub fn fsize( fd: i32 ) -> Result<i64,Error> {
-    rewind(fd);
-    match fseek( fd, SeekFrom::End(0) ) {
-        Ok(_) => { },
-        Err(e) => return Err(e)
-    };
-    Ok(ftell(fd))
-}
-pub fn rewind( fd: i32 ) {
-    unsafe{ ::libc::rewind( fd as isize ) }
-}
-pub fn ftell( fd: i32 ) -> i64 {
-    unsafe{ ::libc::ftell( fd as isize ) }
-}
-pub fn fseek( fd: i32, operation: SeekFrom ) -> Result<bool,Error> {
+
+pub fn fseek( fd: i32, operation: SeekFrom ) -> Result<i64,Error> {
     let mut seek_op = 0i32;
     let mut dist = 0i64;
     match operation {
         SeekFrom::Start(x) => {
             seek_op = 0;
-            //check cast is safe
-            if x >= (1u64 >> 63) {
-                return Ok(true);
-            } else {
-                dist = x as i64;
-            }
+            dist = x as i64;
         },
         SeekFrom::End(x) => {
             seek_op = 2;
@@ -236,10 +218,21 @@ pub fn fseek( fd: i32, operation: SeekFrom ) -> Result<bool,Error> {
             dist = x;
         }
     };
-    let ret = unsafe{ ::libc::fseek( fd as isize, dist, seek_op )};
+    let ret = unsafe{ lseek( fd, dist, seek_op )};
     if ret == 0 {
-        Ok(true)
+        Ok(ret)
     } else {
         Err(Error::last_os_error())
+    }
+}
+pub fn fsize( fd: i32 ) -> Result<i64,Error> {
+    let size = match fseek( fd, SeekFrom::End(0) ) {
+        Ok(x) => x,
+        Err(e) => return Err(e)
+    };
+    //reset buffer
+    match fseek( fd, SeekFrom::Start(0) ) {
+        Ok(_) => Ok(size),
+        Err(e) => Err(e)
     }
 }

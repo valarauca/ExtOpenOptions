@@ -10,4 +10,4 @@ license = "X11"
 
 
 [dependencies]
-libc = { git = "https://github.com/valarauca/libc" }
+libc ="0.2.15"
