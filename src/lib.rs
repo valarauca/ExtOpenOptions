@@ -18,7 +18,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OU
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 extern crate libc;
-use libc::{ open, O_APPEND, O_ASYNC, O_CREAT, O_DIRECT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_SYNC, O_TRUNC,O_WRONLY,O_RDWR};
+use libc::{ open, read, write, O_APPEND, O_ASYNC, O_CREAT, O_DIRECT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_SYNC, O_TRUNC,O_WRONLY,O_RDWR};
 
 use std::io::Error;
 use std::os::unix::io::RawFd;
@@ -148,4 +148,53 @@ impl ExtOpenOptions {
         }
     }
 
+}
+
+
+//  Ok(true)    -> EVERYTHING GOOD
+//  Ok(false)   -> reading more then buffer
+//  Err(::std::io::Error) ->
+pub fn safe_read( fd: i32, buffer: &mut [u8], count: usize) -> Result<bool,Error> {
+    if count > buffer.len() {
+        Ok(false)
+    } else {
+        let ret = unsafe{ read( fd, mem::transmute( buffer.as_mut_ptr() ), count ) };
+        if ret == -1 {
+            Err( Error::last_os_error() )
+        } else {
+            Ok(true)
+        }
+    }
+}
+pub fn generic_read< G: Sized >( fd: i32, buffer: &mut G ) -> Result<(),Error> {
+    let read_size: usize = mem::size_of::< G >();
+    let ret = unsafe{ read( fd, mem::transmute( buffer ), read_size ) };
+    if ret == -1 {
+        Err( Error::last_os_error() )
+    } else {
+        Ok(())
+    }
+}
+
+
+pub fn safe_write( fd: i32, buffer: &[u8], count: usize) -> Result<bool,Error> {
+    if count > buffer.len() {
+        Ok(false)
+    } else {
+        let ret = unsafe{ write( fd, mem::transmute( buffer.as_ptr() ), count ) };
+        if ret == -1 {
+            Err( Error::last_os_error() )
+        } else {
+            Ok(true)
+        }
+    }
+}
+pub fn generic_write< G: Sized >( fd: i32, buffer: &G ) -> Result<(),Error> {
+    let read_size: usize = mem::size_of::< G >();
+    let ret = unsafe{ write( fd, mem::transmute( buffer ), read_size ) };
+    if ret == -1 {
+        Err( Error::last_os_error() )
+    } else {
+        Ok(())
+    }
 }

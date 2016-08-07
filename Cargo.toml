@@ -1,5 +1,5 @@
 [package]
-name = "ExtOpenOptions"
+name = "kernelx64"
 version = "0.1.0"
 authors = ["cody <codylaeder@gmail.com>"]
 description = "Extended options for open(2) interface in Linux x64"

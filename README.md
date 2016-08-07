@@ -1,9 +1,29 @@
-ExtOpenOptions
----
+#`kernelx64`
 
-This library provides a more complete binding interface to the x64 Linux kernel
-open flags. It does so in an interface that looks/feels like the normal
-std::fs::OpenOptions class.
+
+This library offers safe abstractions around the crate `libc`. The goal is to
+allow working with native file descriptors not painful in Rust.
+
+###`read(3)` `write(3)`
+
+`safe_read( fd: i32, buff: &mut [u8], count: usize) -> Result<bool,Error>
+safe_write( fd: i32, buff: &[u8], count: usize ) -> Result<bool,Error>`
+
+Safe Read/Write allow for a buffer larger then the intended write/read be used.
+When `Ok(false)` is returned `count > buff.len()` is `true`. This means the
+write/read being execute are larger then the allocation it is being operated on.
+
+`generic_read< G: Sized >( fd: i32, buff: &mut G) -> Result<(),Error>
+generic_write< G: Sized >( fd: i32, buff: &G ) -> Result<(), Error>`
+
+The function `::std::mem::size_of<G>()` will be called to determine the size
+of the read/write. While the the pointer to G will be treated as a `*void` in
+C-Lang. Rust lang's size of does account for llvm/rustc added struct padding.
+
+
+###`open(3)`
+
+See: `ExtOpenOptions` below
 
 Example Usage:
 
