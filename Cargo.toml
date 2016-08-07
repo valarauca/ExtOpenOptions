@@ -1,0 +1,7 @@
+[package]
+name = "kernelx64_openoptions"
+version = "0.1.0"
+authors = ["cody <codylaeder@gmail.com>"]
+
+[dependencies]
+libc = "0.2.15"
