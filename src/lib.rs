@@ -23,6 +23,7 @@ use libc::{ open, read, write, O_APPEND, O_ASYNC, O_CREAT, O_DIRECT, O_DIRECTORY
 use std::io::Error;
 use std::os::unix::io::RawFd;
 use std::mem;
+use std::io::SeekFrom;
 
 pub fn is_str_null_terminated( buffer: &str ) -> bool {
     let end_index = buffer.as_bytes().len() - 1usize;
@@ -196,5 +197,49 @@ pub fn generic_write< G: Sized >( fd: i32, buffer: &G ) -> Result<(),Error> {
         Err( Error::last_os_error() )
     } else {
         Ok(())
+    }
+}
+
+pub fn fsize( fd: i32 ) -> Result<i64,Error> {
+    rewind(fd);
+    match fseek( fd, SeekFrom::End(0) ) {
+        Ok(_) => { },
+        Err(e) => return Err(e)
+    };
+    Ok(ftell(fd))
+}
+pub fn rewind( fd: i32 ) {
+    unsafe{ ::libc::rewind( fd as isize ) }
+}
+pub fn ftell( fd: i32 ) -> i64 {
+    unsafe{ ::libc::ftell( fd as isize ) }
+}
+pub fn fseek( fd: i32, operation: SeekFrom ) -> Result<bool,Error> {
+    let mut seek_op = 0i32;
+    let mut dist = 0i64;
+    match operation {
+        SeekFrom::Start(x) => {
+            seek_op = 0;
+            //check cast is safe
+            if x >= (1u64 >> 63) {
+                return Ok(true);
+            } else {
+                dist = x as i64;
+            }
+        },
+        SeekFrom::End(x) => {
+            seek_op = 2;
+            dist = x;
+        },
+        SeekFrom::Current(x) => {
+            seek_op = 1;
+            dist = x;
+        }
+    };
+    let ret = unsafe{ ::libc::fseek( fd as isize, dist, seek_op )};
+    if ret == 0 {
+        Ok(true)
+    } else {
+        Err(Error::last_os_error())
     }
 }
