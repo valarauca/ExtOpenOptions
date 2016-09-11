@@ -218,9 +218,9 @@ pub fn fseek( fd: i32, operation: SeekFrom ) -> Result<i64,Error> {
             dist = x;
         }
     };
-    let ret = unsafe{ lseek( fd, dist, seek_op )};
+    let ret = unsafe{ lseek( fd, dist as i32, seek_op )};
     if ret == 0 {
-        Ok(ret)
+        Ok(ret as i64)
     } else {
         Err(Error::last_os_error())
     }
